@@ -27,7 +27,6 @@ const router = {
     goto(path) {
         const normalPath = path === '/' ? '/' : path.replace(/\/+$/, '')
         if (normalPath in this.routes) {
-             // TODO: use an update dom function to diff check
             body = this.routes[normalPath]()
         } else {
             // TODO: add error page
