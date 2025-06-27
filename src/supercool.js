@@ -1,80 +1,52 @@
-const listeners = {}
+import fs from 'fs'
 
-const tags = new Proxy({}, {
-    get(_, name) {
-        return (...args) => {
-            const argsList = [...args]
-            if (name === 'listener') {
-                const el = argsList[1]()
-                argsList[0].forEach(stateVar => {
-                    if (listeners[stateVar]) {
-                        listeners[stateVar].push([el, argsList[1]])
-                    } else {
-                        listeners[stateVar] = [[el, argsList[1]]]
-                    }
-                })
-                return el
-            } else {
-                const el = document.createElement(name)
-                if (argsList[0] instanceof Object && !(argsList[0] instanceof Node)) {
-                    for (const attr in argsList[0]) {
-                        el.setAttribute(attr, argsList[0][attr])
-                    }
-                    argsList.shift()
-                }
-                el.append(...argsList)
-                return el
+export default class supercool {
+    constructor(dir, renderingMethod) {
+        this.dir = dir
+        this.renderingMethod = renderingMethod
+    }
+
+    get(path) {
+        let tags, state, router, body
+
+        eval(fs.readFileSync('src/ssr.js', 'utf8')
+            .replace('const tags', 'tags')
+            .replace('const state', 'state')
+            .replace('const router', 'router')
+        )
+
+        let script
+        if (this.renderingMethod === 'csr' || this.renderingMethod === 'hydration')
+            script = fs.readFileSync('src/csr.js', 'utf8') + '\n'
+        
+        fs.readdirSync(this.dir).forEach(file => {
+            if (fs.statSync(this.dir + file).isFile() && file.endsWith('.js')) {
+                const content = fs.readFileSync(this.dir + file, 'utf8')
+
+                if (this.renderingMethod === 'csr' || this.renderingMethod === 'hydration')
+                    script += content + '\n'
+                
+                if (this.renderingMethod === 'ssr' || this.renderingMethod === 'hydration')
+                    eval(content)
             }
-        }
-    }
-})
+        })
+        
+        if (this.renderingMethod === 'ssr' || this.renderingMethod === 'hydration')
+            router.goto(path)
 
-const state = new Proxy({}, {
-    get(target, prop) {
-        return target[prop]
-    },
-    set(target, prop, value) {
-        target[prop] = value
-        if (listeners[prop]) {
-            listeners[prop].forEach((entry, i) => {
-                const el = entry[1]()
-                entry[0].replaceWith(el)
-                listeners[prop][i] = [el, entry[1]]
-            })
-        }
-        return true
-    }
-})
+        //if (this.renderingMethod === 'csr' || this.renderingMethod === 'hydration')
+            // TODO run script through bundler/minifier
 
-const router = {
-    routes: {},
-    route(path, handler, _default = false) {
-        this.routes[path] = handler
-        if (_default) {
-            this.default = path
-        }
-    },
-    goto(path) {
-        normalPath = path === '/' ? '/' : path.replace(/\/+$/, '')
-        if (normalPath in this.routes) {
-             // TODO: use an update dom function to diff check
-            document.body.replaceChildren(this.routes[normalPath]())
-        } else {
-            // TODO: add error page
-            document.body.innerHTML = '404'
-            console.log('unable to find route', normalPath)
-        }
+        if (this.renderingMethod === 'csr')
+            return `<html><head><script>${script}</script></head><body></body></html>`
+        else if (this.renderingMethod === 'ssr')
+            return `<html><head></head><body>${body}</body></html>`
+        else if (this.renderingMethod === 'hydration')
+            return `<html><head><script>${script}</script></head><body>${body}</body></html>`
+    }
+
+    handle(req, res) {
+        res.writeHead(200, {'Content-Type': 'text/html'})
+        res.end(this.get(req.url))
     }
 }
-
-navigation.addEventListener('navigate', (e) => {
-    e.intercept({
-        handler() {
-            router.goto(e.destination.url.replace(window.location.origin, ''))
-        }
-    })
-})
-
-document.addEventListener("DOMContentLoaded", (e) => {
-    router.goto(router.default)
-})
