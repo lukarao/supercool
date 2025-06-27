@@ -9,11 +9,7 @@ export default class supercool {
     get(path) {
         let tags, state, router, body
 
-        eval(fs.readFileSync('src/ssr.js', 'utf8')
-            .replace('const tags', 'tags')
-            .replace('const state', 'state')
-            .replace('const router', 'router')
-        )
+        eval(fs.readFileSync('src/ssr.js', 'utf8'))
 
         let script
         if (this.renderingMethod === 'csr' || this.renderingMethod === 'hydration')

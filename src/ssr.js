@@ -1,4 +1,4 @@
-const tags = new Proxy({}, {
+tags = new Proxy({}, {
     get(_, name) {
         return (...args) => {
             const argsList = [...args]
@@ -17,9 +17,9 @@ const tags = new Proxy({}, {
     }
 })
 
-const state = {}
+state = {}
 
-const router = {
+router = {
     routes: {},
     route(path, handler) {
         this.routes[path] = handler
