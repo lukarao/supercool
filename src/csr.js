@@ -75,6 +75,6 @@ navigation.addEventListener('navigate', (e) => {
     })
 })
 
-document.addEventListener("DOMContentLoaded", (e) => {
+document.addEventListener('DOMContentLoaded', (e) => {
     router.goto(router.default)
 })
