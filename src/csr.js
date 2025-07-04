@@ -77,5 +77,6 @@ navigation.addEventListener('navigate', (e) => {
 })
 
 document.addEventListener('DOMContentLoaded', (e) => {
+    window.history.pushState({}, '', router.default)
     router.goto(router.default)
 })
