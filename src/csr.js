@@ -1,6 +1,6 @@
-const listeners = {}
+export const listeners = {}
 
-const tags = new Proxy({}, {
+export const tags = new Proxy({}, {
     get(_, name) {
         return (...args) => {
             const argsList = [...args]
@@ -29,7 +29,7 @@ const tags = new Proxy({}, {
     }
 })
 
-const state = new Proxy({}, {
+export const state = new Proxy({}, {
     get(target, prop) {
         return target[prop]
     },
@@ -46,7 +46,7 @@ const state = new Proxy({}, {
     }
 })
 
-const router = {
+export const router = {
     routes: {},
     route(path, handler, _default = false) {
         this.routes[path] = handler

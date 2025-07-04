@@ -1,4 +1,4 @@
-tags = new Proxy({}, {
+export const tags = new Proxy({}, {
     get(_, name) {
         return (...args) => {
             const argsList = [...args]
@@ -17,9 +17,9 @@ tags = new Proxy({}, {
     }
 })
 
-state = {}
+export const state = {}
 
-router = {
+export const router = {
     routes: {},
     route(path, handler) {
         this.routes[path] = handler
@@ -27,11 +27,11 @@ router = {
     goto(path) {
         const normalPath = path === '/' ? '/' : path.replace(/\/+$/, '')
         if (normalPath in this.routes) {
-            body = this.routes[normalPath]()
+            return this.routes[normalPath]()
         } else {
             // TODO: add error page
-            body = '404'
             console.error('unable to find route', normalPath)
+            return '404'
         }
     }
 }
