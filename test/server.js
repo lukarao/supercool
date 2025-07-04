@@ -1,4 +1,4 @@
-import http from 'http'
+import express from 'express'
 import inject from '@rollup/plugin-inject'
 import multi from '@rollup/plugin-multi-entry'
 import path from 'path'
@@ -7,8 +7,9 @@ import { rollup } from 'rollup'
 
 const APPDIR = 'app/'
 const RENDERING_METHOD = 'hydration'
-const HOST = 'localhost'
 const PORT = 8000
+
+const app = express()
 
 async function render(req) {
     let csrOutput, ssrModule
@@ -51,7 +52,7 @@ async function render(req) {
         ssrModule = await import('./build/ssr.js')
     }
 
-    const url = `http://${HOST}${req.url}`
+    const url = `http://localhost${req.url}`
         
     if (RENDERING_METHOD === 'csr') {
         return `<html><head><script>${csrOutput}</script></head><body></body></html>`
@@ -62,13 +63,12 @@ async function render(req) {
     }
 }
 
-const server = http.createServer((req, res) => {
+app.use('*all', async (req, res) => {
     render(req).then(html => {
-        res.writeHead(200, {'Content-Type': 'text/html'})
-        res.end(html)
+        res.status(200).set({'Content-Type': 'text/html'}).send(html)
     })
 })
 
-server.listen(PORT, HOST, () => {
-    console.log(`Server is running on http://${HOST}:${PORT}`)
+app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`)
 })
