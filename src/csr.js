@@ -54,15 +54,16 @@ export const router = {
             this.default = path
         }
     },
-    goto(path) {
-        const normalPath = path === '/' ? '/' : path.replace(/\/+$/, '')
-        if (normalPath in this.routes) {
+    goto(url) {
+        const parsedURL = new URL(url.replace(/\/+$/, ''), window.location.origin)
+        const path = parsedURL.pathname
+        if (path in this.routes) {
              // TODO: use an update dom function to diff check
-            document.body.replaceChildren(this.routes[normalPath]())
+            document.body.replaceChildren(this.routes[path]())
         } else {
             // TODO: add error page
             document.body.innerHTML = '404'
-            console.error('unable to find route', normalPath)
+            console.error('unable to find route', path)
         }
     }
 }
@@ -70,7 +71,7 @@ export const router = {
 navigation.addEventListener('navigate', (e) => {
     e.intercept({
         handler() {
-            router.goto(e.destination.url.replace(window.location.origin, ''))
+            router.goto(e.destination.url)
         }
     })
 })

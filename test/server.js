@@ -10,12 +10,12 @@ const RENDERING_METHOD = 'hydration'
 const HOST = 'localhost'
 const PORT = 8000
 
-async function render(dir, renderingMethod, req) {
+async function render(req) {
     let csrOutput, ssrModule
 
-    if (renderingMethod === 'csr' || renderingMethod === 'hydration') {
+    if (RENDERING_METHOD === 'csr' || RENDERING_METHOD === 'hydration') {
         const csrBundle = await rollup({
-            input: path.join(dir, '**/*.js'),
+            input: path.join(APPDIR, '**/*.js'),
             plugins: [
                 multi(),
                 inject({
@@ -30,10 +30,9 @@ async function render(dir, renderingMethod, req) {
         csrBundle.close()
     }
 
-
-    if (renderingMethod === 'ssr' || renderingMethod === 'hydration') {
+    if (RENDERING_METHOD === 'ssr' || RENDERING_METHOD === 'hydration') {
         const ssrBundle = await rollup({
-            input: path.join(dir, '**/*.js'),
+            input: path.join(APPDIR, '**/*.js'),
             plugins: [
                 multi(),
                 inject({
@@ -46,23 +45,25 @@ async function render(dir, renderingMethod, req) {
         })
         await ssrBundle.write({
             file: 'build/ssr.js',
-            footer: 'module.exports = router;'
+            outro: 'export default router;'
         })
         ssrBundle.close()
         ssrModule = await import('./build/ssr.js')
     }
+
+    const url = `http://${HOST}${req.url}`
         
-    if (renderingMethod === 'csr') {
+    if (RENDERING_METHOD === 'csr') {
         return `<html><head><script>${csrOutput}</script></head><body></body></html>`
-    } else if (renderingMethod === 'ssr') {
-        return `<html><head></head><body>${ssrModule.default.goto(req.url)}</body></html>`
-    } else if (renderingMethod === 'hydration') {
-        return `<html><head><script>${csrOutput}</script></head><body>${ssrModule.default.goto(req.url)}</body></html>`
+    } else if (RENDERING_METHOD === 'ssr') {
+        return `<html><head></head><body>${ssrModule.default.goto(url)}</body></html>`
+    } else if (RENDERING_METHOD === 'hydration') {
+        return `<html><head><script>${csrOutput}</script></head><body>${ssrModule.default.goto(url)}</body></html>`
     }
 }
 
 const server = http.createServer((req, res) => {
-    render(APPDIR, RENDERING_METHOD, req).then(html => {
+    render(req).then(html => {
         res.writeHead(200, {'Content-Type': 'text/html'})
         res.end(html)
     })

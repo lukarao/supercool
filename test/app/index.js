@@ -14,6 +14,6 @@ router.route('/', () => {
                 return p('Not logged in')
             }
         }),
-        a({href: '/home/'}, 'link')
+        a({href: '/home'}, 'link')
     )
 }, true)

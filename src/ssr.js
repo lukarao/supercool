@@ -1,3 +1,5 @@
+import { URL } from 'url'
+
 export const tags = new Proxy({}, {
     get(_, name) {
         return (...args) => {
@@ -24,13 +26,14 @@ export const router = {
     route(path, handler) {
         this.routes[path] = handler
     },
-    goto(path) {
-        const normalPath = path === '/' ? '/' : path.replace(/\/+$/, '')
-        if (normalPath in this.routes) {
-            return this.routes[normalPath]()
+    goto(url) {
+        const parsedURL = new URL(url.replace(/\/+$/, ''))
+        const path = parsedURL.pathname
+        if (path in this.routes) {
+            return this.routes[path]()
         } else {
             // TODO: add error page
-            console.error('unable to find route', normalPath)
+            console.error('unable to find route', path)
             return '404'
         }
     }
