@@ -16,4 +16,4 @@ router.route('/', () => {
         }),
         a({href: '/home'}, 'link')
     )
-}, true)
+})

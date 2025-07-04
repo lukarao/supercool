@@ -48,11 +48,8 @@ export const state = new Proxy({}, {
 
 export const router = {
     routes: {},
-    route(path, handler, _default = false) {
+    route(path, handler) {
         this.routes[path] = handler
-        if (_default) {
-            this.default = path
-        }
     },
     goto(url) {
         const parsedURL = new URL(url.replace(/\/+$/, ''), window.location.origin)
@@ -77,6 +74,5 @@ navigation.addEventListener('navigate', (e) => {
 })
 
 document.addEventListener('DOMContentLoaded', (e) => {
-    window.history.pushState({}, '', router.default)
-    router.goto(router.default)
+    router.goto(window.location.href)
 })
